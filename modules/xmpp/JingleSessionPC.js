@@ -947,13 +947,6 @@ export default class JingleSessionPC extends JingleSession {
     }
 
     /**
-     * Returns the video codec configured as the preferred codec on the peerconnection.
-     */
-    getConfiguredVideoCodec() {
-        return this.peerconnection.getConfiguredVideoCodec();
-    }
-
-    /**
      * Accepts incoming Jingle 'session-initiate' and should send 'session-accept' in result.
      *
      * @param jingleOffer jQuery selector pointing to the jingle element of the offer IQ
@@ -1181,13 +1174,17 @@ export default class JingleSessionPC extends JingleSession {
      * Updates the codecs on the peerconnection and initiates a renegotiation for the
      * new codec config to take effect.
      *
-     * @param {CodecMimeType} preferred the preferred codec.
-     * @param {CodecMimeType} disabled the codec that needs to be disabled.
+     * @param {Array<CodecMimeType>} codecList the preferred codecs.
      */
     setVideoCodecs(codecList) {
+
         if (this._assertNotEnded()) {
             logger.info(`${this} setVideoCodecs: ${codecList}`);
             this.peerconnection.setVideoCodecs(codecList);
+
+            if (browser.supportsCodecSelectionAPI()) {
+                return;
+            }
 
             // Initiate a renegotiate for the codec setting to take effect.
             const workFunction = finishedCallback => {
